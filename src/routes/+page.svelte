@@ -1,52 +1,102 @@
 <script>
 	import { browser } from '$app/environment';
+	import '../app.css';
 
-	if (browser) {
+	let video;
+	let playing = false;
+	let muted = false;
+	let fullScreen = false;
+	let showControls = false;
+
+	function togglePlay() {
+		if (playing) {
+			video.pause();
+		} else {
+			video.play();
+		}
+		playing = !playing;
+	}
+
+	function toggleMute() {
+		video.muted = !video.muted;
+		muted = video.muted;
+	}
+
+	function setVideoProgress(e) {
+		video.currentTime = (e.target.value * video.duration) / 100;
+	}
+
+	function toggleFullScreen() {
+		if (!fullScreen) {
+			document.documentElement.requestFullscreen();
+		} else {
+			document.exitFullscreen();
+		}
+		fullScreen = !fullScreen;
 	}
 </script>
 
-<svelte:head>
-	<link
-		rel="stylesheet"
-		href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
-	/>
-</svelte:head>
+<div class="flex justify-center items-center h-screen w-screen">
+	<div
+		class="container {fullScreen ? 'w-screen' : 'w-[700px]'} {fullScreen
+			? 'h-screen'
+			: 'h-auto'} border border-red-300 relative flex flex-col"
+	>
+		<video
+			src="https://res.cloudinary.com/dvzkop7eh/video/upload/v1673052095/ad_mq7af1.mp4"
+			bind:this={video}
+			on:play={() => (playing = true)}
+			on:pause={() => (playing = false)}
+			on:timeupdate={() =>
+				requestAnimationFrame(() => {
+					const progress = (video.currentTime / video.duration) * 100;
+					document.getElementById('progress').value = progress;
+				})}
+			on:volumechange={() => (muted = video.muted)}
+			class="w-full absolute"
+			controls={false}
+		>
+			<track kind="captions" />
+			Sorry, your browser doesn't support embedded videos.
+		</video>
 
-<div class="video-container">
-	<video
-		id="video"
-		preload="metadata"
-		src="https://res.cloudinary.com/dvzkop7eh/video/upload/v1673052095/ad_mq7af1.mp4"
-	/>
-  <div class="controls">
-    <button>
-      <i class="fa fa-play"></i>
-    </button>
-  </div>
+		<div
+			class="controls p-2 flex {fullScreen ? 'h-[100px]' : 'h-auto'}
+		 {fullScreen ? 'bg-[#5a4e8647] mb-0 mt-auto' : 'bg-[#c6baf047] mt-[20.5em]'}"
+			id="controls"
+		>
+			<button on:click={togglePlay}>
+				{playing ? 'Pause' : 'Play'}
+			</button>
+
+			<button on:click={toggleMute}>
+				{muted ? 'Unmute' : 'Mute'}
+			</button>
+
+			<button on:click={toggleFullScreen}>
+				{!fullScreen ? 'FullScreen' : 'Exit FullScreen'}
+			</button>
+
+			<input type="range" min="0" max="100" id="progress" on:input={setVideoProgress} />
+		</div>
+	</div>
 </div>
 
 <style>
-	.video-container {
-		display: flex;
-		width: 500px;
-    height: 500px;
-    flex-direction: column;
-    position: relative;
+	video::-webkit-media-controls {
+		display: none !important;
+	}
+	video::-webkit-media-controls-enclosure {
+		display: none !important;
+	}
+	.controls {
+		z-index: 3147483697 !important;
 		align-items: center;
-		justify-content: center;
+		justify-content: space-between !important;
+
+		position: relative;
 	}
-	.video-container > video {
-		width: 100%;
-		height: 100%;
-    position: absolute;
+	video {
+		z-index: 0 !important;
 	}
-  .controls{
-    z-index: 9999999;
-    width: 100%;
-    justify-self: flex-end;
-    position: relative;
-    top: 6.5em;
-    height: 50px;
-    background-color: rgba(0, 0, 0, 0.337);
-  }
 </style>
