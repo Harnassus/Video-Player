@@ -5,9 +5,10 @@
 	let playing = false;
 	let muted = false;
 	let fullScreen = false;
-	let showControls = false;
+	let playbackRate = "1";
 	let fullscreenchange =
 		'fullscreenchange' || 'webkitfullscreenchange' || 'mozfullscreenchange' || 'MSFullscreenChange';
+
 	function togglePlay() {
 		if (playing) {
 			video.pause();
@@ -16,13 +17,16 @@
 		}
 		playing = !playing;
 	}
+
 	function toggleMute() {
 		video.muted = !video.muted;
 		muted = video.muted;
 	}
+
 	function setVideoProgress(e) {
 		video.currentTime = (e.target.value * video.duration) / 100;
 	}
+
 	function toggleFullScreen() {
 		if (!fullScreen) {
 			document.documentElement.requestFullscreen() ||
@@ -33,6 +37,12 @@
 		}
 		fullScreen = !fullScreen;
 	}
+
+	const setPlaybackRate = (e) => {
+		video.playbackRate = e.target.value;
+	};
+
+
 	if (browser) {
 		const fullscreenElement =
 			document.fullscreenElement ||
@@ -167,6 +177,13 @@
 						</svg>
 					{/if}
 				</button>
+
+				<select bind:value={playbackRate} on:change={setPlaybackRate}>
+					<option value="0.5">0.5x</option>
+					<option value="1" selected>1x</option>
+					<option value="1.5">1.5x</option>
+					<option value="2">2x</option>
+				</select>
 			</div>
 		</div>
 	</div>
@@ -195,6 +212,6 @@
 	progress::-webkit-progress-value {
 		border: 0;
 		border-radius: 10px;
-		background-color: #5d57ff5a;
+		background-color: #5d57ff;
 	}
 </style>
