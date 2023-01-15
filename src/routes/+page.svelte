@@ -5,7 +5,8 @@
 	let playing = false;
 	let muted = false;
 	let fullScreen = false;
-	let playbackRate = "1";
+	let playbackRate = 1;
+	let showDropdown = false;
 	let fullscreenchange =
 		'fullscreenchange' || 'webkitfullscreenchange' || 'mozfullscreenchange' || 'MSFullscreenChange';
 
@@ -38,10 +39,15 @@
 		fullScreen = !fullScreen;
 	}
 
-	const setPlaybackRate = (e) => {
-		video.playbackRate = e.target.value;
-	};
+	function toggleDropdown() {
+		showDropdown = !showDropdown;
+	}
 
+	const setPlaybackRate = (param) => {
+		playbackRate = param;
+		video.playbackRate = param;
+		showDropdown = !showDropdown;
+	};
 
 	if (browser) {
 		const fullscreenElement =
@@ -58,7 +64,7 @@
 </script>
 
 <div class="flex justify-center items-center h-screen w-screen">
-	<div class="container relative {fullScreen ? 'w-screen' : 'w-[700px]'} flex flex-col">
+	<div class="container relative {fullScreen ? 'w-screen h-screen' : 'w-[700px]'} flex flex-col">
 		<video
 			src="https://res.cloudinary.com/dvzkop7eh/video/upload/v1673052095/ad_mq7af1.mp4"
 			bind:this={video}
@@ -70,7 +76,7 @@
 					document.getElementById('progress').value = progress;
 				})}
 			on:volumechange={() => (muted = video.muted)}
-			class="w-full a"
+			class="w-full "
 			id="video"
 			controls={false}
 		>
@@ -79,12 +85,12 @@
 		</video>
 
 		<div
-			class="controls p-2 flex items-center bg-[#5d57ff5a] justify-between {fullScreen
+			class="controls text-center p-2 flex items-center bg-[#5d57ff5a] justify-between {fullScreen
 				? 'h-[65px] fixed w-full bottom-0'
 				: 'h-auto absolute w-full bottom-0'} "
 			id="controls"
 		>
-			<div>
+			<div class="flex ">
 				<button on:click={togglePlay}>
 					{#if playing}
 						<svg
@@ -116,9 +122,9 @@
 				</button>
 			</div>
 
-			<progress class="basis-10/12" min="0" max="100" id="progress" on:input={setVideoProgress} />
+			<progress class="basis-9/12" min="0" max="100" id="progress" on:input={setVideoProgress} />
 
-			<div>
+			<div class="flex justify-between items-center {fullScreen ? 'w-[200px]' : 'w-[110px]'}">
 				<button on:click={toggleMute}>
 					{#if muted}
 						<svg
@@ -178,14 +184,19 @@
 					{/if}
 				</button>
 
-				<select bind:value={playbackRate} on:change={setPlaybackRate}>
-					<option value="0.5">0.5x</option>
-					<option value="1" selected>1x</option>
-					<option value="1.5">1.5x</option>
-					<option value="2">2x</option>
-				</select>
+				<button class="dropdown-button font-bold " on:click={toggleDropdown}>{playbackRate}x</button>
 			</div>
 		</div>
+		{#if showDropdown}
+			<div class="dropdown-content absolute w-[75px] rounded-[2px] bottom-1 flex-col flex items-center justify-center gap-2 right-1" id="dropdown-content">
+				<div on:click={() => setPlaybackRate(0.25)}>0.25</div>
+				<div on:click={() => setPlaybackRate(0.5)}>0.5</div>
+				<div on:click={() => setPlaybackRate(0.75)}>0.75</div>
+				<div on:click={() => setPlaybackRate(1)}>1</div>
+				<div on:click={() => setPlaybackRate(1.5)}>1.5</div>
+				<div on:click={() => setPlaybackRate(1.75)}>1.75</div>
+			</div>
+		{/if}
 	</div>
 </div>
 
@@ -213,5 +224,20 @@
 		border: 0;
 		border-radius: 10px;
 		background-color: #5d57ff;
+	}
+
+	.dropdown-content {
+		cursor: pointer;
+		z-index: 1000;
+		background: white;
+		box-shadow: 2px 2px 100px #878787;
+	}
+	.dropdown-content > div{
+		width: 100%;
+		padding-left: 1em;
+		
+	}
+	.dropdown-content > div:hover{
+		background: rgba(86, 84, 84, 0.123)
 	}
 </style>
