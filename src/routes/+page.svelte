@@ -7,8 +7,44 @@
 	let fullScreen = false;
 	let playbackRate = 1;
 	let showDropdown = false;
+	let currentTime = 0;
 	let fullscreenchange =
 		'fullscreenchange' || 'webkitfullscreenchange' || 'mozfullscreenchange' || 'MSFullscreenChange';
+
+	let progress;
+	let isDragging = false;
+	let mobile = false;
+	let viewPortRotate = false
+	let a = false
+
+	function handleMouseDown(event) {
+		isDragging = true;
+		updateTime(event);
+	}
+
+	function handleMouseMove(event) {
+		if (isDragging) {
+			updateTime(event);
+		}
+	}
+
+	function handleMouseUp() {
+		isDragging = false;
+	}
+
+	function updateTime(event) {
+		const boundingRect = progress.getBoundingClientRect();
+		const percentage = (event.clientX - boundingRect.left) / boundingRect.width;
+		currentTime = percentage * video.duration;
+		video.currentTime = currentTime;
+	}
+
+	function setVideoDuration() {
+		max = video.duration;
+	}
+
+	// $: isDragging && browser ? video.pause() : video.play();
+	// $: currentTime = video.currentTime;
 
 	function togglePlay() {
 		if (playing) {
@@ -60,13 +96,31 @@
 				fullScreen = false;
 			}
 		});
+		const width = window.innerWidth;
+
+		if (width <= 500) {
+			mobile = true;
+			
+		}
+
+		if (screen.availWidth > screen.availHeight) {
+			viewPortRotate = true;
+			}
+
+			if (viewPortRotate && mobile && fullScreen) {
+				a = true;
+				console.log(a);
+			}
 	}
 </script>
 
-<div class="flex justify-center items-center h-screen w-screen">
-	<div class="container relative {fullScreen ? 'w-screen h-screen' : 'w-[700px]'} flex flex-col">
+
+	<div
+		class="bg-black bottom-0 relative {fullScreen && 'w-screen h-screen'} flex flex-col {mobile ? 'w-[100%]' : 'w-[700px]'}
+			"
+	>
 		<video
-			src="https://res.cloudinary.com/dvzkop7eh/video/upload/v1673052095/ad_mq7af1.mp4"
+			src="/video.mp4"
 			bind:this={video}
 			on:play={() => (playing = true)}
 			on:pause={() => (playing = false)}
@@ -76,7 +130,7 @@
 					document.getElementById('progress').value = progress;
 				})}
 			on:volumechange={() => (muted = video.muted)}
-			class="w-full "
+			class="w-full {fullScreen ? 'h-full fixed bottom-0' : 'h-auto'} "
 			id="video"
 			controls={false}
 		>
@@ -85,9 +139,9 @@
 		</video>
 
 		<div
-			class="controls text-center p-2 flex items-center bg-[#5d57ff5a] justify-between {fullScreen
-				? 'h-[65px] fixed w-full bottom-0'
-				: 'h-auto absolute w-full bottom-0'} "
+			class="controls text-center p-2 flex items-center bg-[#5d57ff5a] {fullScreen
+				? 'h-[65px] fixed w-full justify-between bottom-0'
+				: 'h-auto absolute w-full bottom-0'} {mobile ? 'justify-center gap-4' : 'gap-8'} "
 			id="controls"
 		>
 			<div class="flex ">
@@ -122,9 +176,11 @@
 				</button>
 			</div>
 
-			<progress class="basis-9/12" min="0" max="100" id="progress" on:input={setVideoProgress} />
+			<progress class={mobile ? 'basis-[60%] h-[7px]' : 'basis-9/12 h-[10px]'} min="0" />
 
-			<div class="flex justify-between items-center {fullScreen ? 'w-[200px]' : 'w-[110px]'}">
+			<div
+				class="flex justify-between items-center {fullScreen ? 'w-[200px]' : 'w-[100px]'} {mobile && 'gap-4 w-auto'}"
+			>
 				<button on:click={toggleMute}>
 					{#if muted}
 						<svg
@@ -184,11 +240,15 @@
 					{/if}
 				</button>
 
-				<button class="dropdown-button font-bold " on:click={toggleDropdown}>{playbackRate}x</button>
+				<button class="dropdown-button font-bold " on:click={toggleDropdown}>{playbackRate}x</button
+				>
 			</div>
 		</div>
 		{#if showDropdown}
-			<div class="dropdown-content absolute w-[75px] rounded-[2px] bottom-1 flex-col flex items-center justify-center gap-2 right-1" id="dropdown-content">
+			<div
+				class="dropdown-content absolute w-[75px] rounded-[2px] bottom-1 flex-col flex items-center justify-center gap-2 right-1"
+				id="dropdown-content"
+			>
 				<div on:click={() => setPlaybackRate(0.25)}>0.25</div>
 				<div on:click={() => setPlaybackRate(0.5)}>0.5</div>
 				<div on:click={() => setPlaybackRate(0.75)}>0.75</div>
@@ -198,9 +258,10 @@
 			</div>
 		{/if}
 	</div>
-</div>
+
 
 <style>
+	
 	video::-webkit-media-controls {
 		display: none !important;
 	}
@@ -212,32 +273,42 @@
 	}
 
 	progress {
-		height: 9px;
-		border: 0;
-	}
-	progress::-webkit-progress-bar {
-		background-color: #f3f3f3;
-		border-radius: 10px;
-		border: 0;
-	}
-	progress::-webkit-progress-value {
-		border: 0;
-		border-radius: 10px;
-		background-color: #5d57ff;
+		/* Default styles */
+		-webkit-appearance: none;
+		appearance: none;
+		width: 100%;
+		background: white;
+		border-radius: 5px;
+		overflow: hidden;
 	}
 
+	/* Webkit */
+	progress::-webkit-progress-bar {
+		background-color: white;
+		border-radius: 5px;
+	}
+
+	progress::-webkit-progress-value {
+		background: #5d57ff;
+		border-radius: 5px;
+	}
+
+	/* Firefox */
+	progress::-moz-progress-bar {
+		background-color: #5d57ff;
+		border-radius: 5px;
+	}
 	.dropdown-content {
 		cursor: pointer;
 		z-index: 1000;
 		background: white;
 		box-shadow: 2px 2px 100px #878787;
 	}
-	.dropdown-content > div{
+	.dropdown-content > div {
 		width: 100%;
 		padding-left: 1em;
-		
 	}
-	.dropdown-content > div:hover{
-		background: rgba(86, 84, 84, 0.123)
+	.dropdown-content > div:hover {
+		background: rgba(86, 84, 84, 0.123);
 	}
 </style>
